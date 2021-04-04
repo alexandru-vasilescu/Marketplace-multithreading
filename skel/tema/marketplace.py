@@ -57,7 +57,9 @@ class Marketplace:
 
         :returns an int representing the cart_id
         """
-        pass
+        self.count_cart += 1
+        self.carts[self.count_cart] = []
+        return self.count_cart
 
     def add_to_cart(self, cart_id, product):
         """
@@ -71,7 +73,12 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again
         """
-        pass
+        for key, value in self.produse.items():
+            if product in value:
+                self.carts[cart_id].append((key, product))
+                value.remove(product)
+                return True
+        return False
 
     def remove_from_cart(self, cart_id, product):
         """
@@ -83,7 +90,11 @@ class Marketplace:
         :type product: Product
         :param product: the product to remove from cart
         """
-        pass
+        for product_in_cart in self.carts[cart_id]:
+            if product_in_cart[1] == product:
+                self.produse[product_in_cart[0]].append(product)
+                self.carts[cart_id].remove(product_in_cart)
+                break
 
     def place_order(self, cart_id):
         """
@@ -92,5 +103,4 @@ class Marketplace:
         :type cart_id: Int
         :param cart_id: id cart
         """
-        pass
-
+        return [product[1] for product in self.carts[cart_id]]

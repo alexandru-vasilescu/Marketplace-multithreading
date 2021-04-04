@@ -6,7 +6,8 @@ Assignment 1
 March 2021
 """
 
-from threading import Thread
+from threading import Thread, Lock
+from time import sleep
 
 
 class Consumer(Thread):
@@ -31,13 +32,24 @@ class Consumer(Thread):
         :type kwargs:
         :param kwargs: other arguments that are passed to the Thread's __init__()
         """
-        Thread.__init__(self)
+        Thread.__init__(self, **kwargs)
         self.carts = carts
         self.marketplace = marketplace
         self.wait_time = retry_wait_time
-        for k, v in kwargs.items():
-            if k == 'name':
-                self.name = v
+        self.lock = Lock()
 
     def run(self):
-        pass
+        for cart in self.carts:
+            with self.lock:
+                cart_id = self.marketplace.new_cart()
+            for action in cart:
+                if action['type'] == 'add':
+                    for _ in range(action['quantity']):
+                        while not self.marketplace.add_to_cart(cart_id, action['product']):
+                            sleep(self.wait_time)
+                else:
+                    for _ in range(action['quantity']):
+                        self.marketplace.remove_from_cart(cart_id, action['product'])
+            shopping_cart = self.marketplace.place_order(cart_id)
+            for product in shopping_cart:
+                print(self.name + " bought " + str(product))
