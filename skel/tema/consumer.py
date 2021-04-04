@@ -40,4 +40,4 @@ class Consumer(Thread):
                 self.name = v
 
     def run(self):
-        print(len(self.carts))
+        pass
