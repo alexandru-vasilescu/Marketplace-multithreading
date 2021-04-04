@@ -6,7 +6,7 @@ Assignment 1
 March 2021
 """
 
-from threading import Thread, Lock
+from threading import Thread
 from time import sleep
 
 
@@ -34,13 +34,12 @@ class Producer(Thread):
         """
         Thread.__init__(self, **kwargs)
         self.products = products
-        self.lock = Lock()
         self.marketplace = marketplace
-        with self.lock:
-            self.id_producer = marketplace.register_producer()
+        self.id_producer = marketplace.register_producer()
         self.wait_time = republish_wait_time
 
     def run(self):
+        # intr-o bucla infinita adaug produse la marketplace in functie de cantitate
         while True:
             for product in self.products:
                 buying_product = product[0]

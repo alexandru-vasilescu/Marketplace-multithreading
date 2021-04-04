@@ -6,7 +6,7 @@ Assignment 1
 March 2021
 """
 
-from threading import Thread, Lock
+from threading import Thread
 from time import sleep
 
 
@@ -36,12 +36,12 @@ class Consumer(Thread):
         self.carts = carts
         self.marketplace = marketplace
         self.wait_time = retry_wait_time
-        self.lock = Lock()
 
     def run(self):
         for cart in self.carts:
-            with self.lock:
-                cart_id = self.marketplace.new_cart()
+            # inregistre fiecare cart din lista
+            cart_id = self.marketplace.new_cart()
+            # execut fiecare actiune din cart apeland metodele respective din marketplace
             for action in cart:
                 if action['type'] == 'add':
                     for _ in range(action['quantity']):
@@ -50,6 +50,8 @@ class Consumer(Thread):
                 else:
                     for _ in range(action['quantity']):
                         self.marketplace.remove_from_cart(cart_id, action['product'])
+            # primesc lista de produse din cart dupa executarea tuturor actiunilor
             shopping_cart = self.marketplace.place_order(cart_id)
+            # o afisez cu numele consumatorului in fata
             for product in shopping_cart:
                 print(self.name + " bought " + str(product))

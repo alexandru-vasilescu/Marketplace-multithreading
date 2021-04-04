@@ -5,6 +5,7 @@ Computer Systems Architecture Course
 Assignment 1
 March 2021
 """
+from threading import Lock
 
 
 class Marketplace:
@@ -21,17 +22,25 @@ class Marketplace:
         :param queue_size_per_producer: the maximum size of a queue associated with each producer
         """
         self.queue_size = queue_size_per_producer
+        # Calculez id-ul producatorilor pentru a-l putea da la apelul register_producer
         self.count_producer = 0
-        self.produse = dict()
+        # Pastrez o lista de produse in functie de fiecare producator
+        self.market = dict()
+        # Calculez id-ul cartului pentru a-l putea da la apelul new_cart
         self.count_cart = 0
+        # Pastre o lista de tupluri (id_producator, produs) pentru fiecare cart
         self.carts = dict()
+        # Mutex folosit pentru a sincroniza adaugarea unui nou cart
+        self.lock = Lock()
 
     def register_producer(self):
         """
         Returns an id for the producer that calls this.
         """
-        self.count_producer += 1
-        self.produse[self.count_producer] = []
+        with self.lock:
+            self.count_producer += 1
+            # initializez lista producatorului
+            self.market[self.count_producer] = []
         return self.count_producer
 
     def publish(self, producer_id, product):
@@ -46,8 +55,9 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again.
         """
-        if len(self.produse[producer_id]) < self.queue_size:
-            self.produse[producer_id].append(product)
+        # Verific daca este loc de a adauga produse in coada
+        if len(self.market[producer_id]) < self.queue_size:
+            self.market[producer_id].append(product)
             return True
         return False
 
@@ -57,8 +67,10 @@ class Marketplace:
 
         :returns an int representing the cart_id
         """
-        self.count_cart += 1
-        self.carts[self.count_cart] = []
+        with self.lock:
+            self.count_cart += 1
+            # initializez lista cartului in dicitonar
+            self.carts[self.count_cart] = []
         return self.count_cart
 
     def add_to_cart(self, cart_id, product):
@@ -73,7 +85,8 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again
         """
-        for key, value in self.produse.items():
+        for key, value in self.market.items():
+            # caut produsul dorit in market
             if product in value:
                 self.carts[cart_id].append((key, product))
                 value.remove(product)
@@ -92,7 +105,7 @@ class Marketplace:
         """
         for product_in_cart in self.carts[cart_id]:
             if product_in_cart[1] == product:
-                self.produse[product_in_cart[0]].append(product)
+                self.market[product_in_cart[0]].append(product)
                 self.carts[cart_id].remove(product_in_cart)
                 break
 
